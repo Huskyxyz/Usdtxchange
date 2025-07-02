@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>USDTPro – Bestellung</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #f0f8ff);
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #ffffffcc;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      margin-top: 30px;
+    }
+    h1 {
+      text-align: center;
+      color: #00695c;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 20px;
+      background-color: #00796b;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #004d40;
+    }
+    .info {
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+      color: #004d40;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🪙 USDTPro Bestellung</h1>
+
+    <div class="info">📈 1 € = 1.25 USDT</div>
+
+    <form id="orderForm">
+      <label for="name">👤 Dein Name:</label>
+      <input id="name" name="name" type="text" required />
+
+      <label for="usdtWallet">💼 Deine USDT-Wallet-Adresse (TRC20):</label>
+      <input id="usdtWallet" name="usdtWallet" type="text" required />
+
+      <label for="amount">💶 Betrag in €:</label>
+      <input id="amount" name="amount" type="number" min="10" required />
+
+      <div id="usdtPreview" class="info">📤 Du erhältst: 0 USDT</div>
+
+      <button type="submit">✅ Bestellung absenden</button>
+    </form>
+
+    <div class="info">💸 Zahlung per Wise:</div>
+    <a href="https://wise.com/pay/me/niaran" target="_blank">
+      <button>💳 Mit Wise bezahlen</button>
+    </a>
+  </div>
+
+  <script>
+    const botToken = "7565521192:AAHE7TssO0WiQsQGjmpoR1O9L0Md_kdH_wE";
+    const chatId = "6641312710";
+    const rate = 1.25;
+
+    const amountInput = document.getElementById("amount");
+    const preview = document.getElementById("usdtPreview");
+
+    amountInput.addEventListener("input", () => {
+      const euro = parseFloat(amountInput.value);
+      if (!isNaN(euro) && euro > 0) {
+        const usdt = (euro * rate).toFixed(2);
+        preview.textContent = `📤 Du erhältst: ${usdt} USDT`;
+      } else {
+        preview.textContent = "📤 Du erhältst: 0 USDT";
+      }
+    });
+
+    document.getElementById("orderForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const wallet = document.getElementById("usdtWallet").value;
+      const amount = parseFloat(document.getElementById("amount").value);
+      const usdt = (amount * rate).toFixed(2);
+
+      const message = `💸 Neue USDT-Bestellung:\n👤 Name: ${name}\n💼 Wallet: ${wallet}\n💶 Betrag: ${amount} €\n📤 USDT: ${usdt}`;
+
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) {
+          alert("✅ Bestellung erfolgreich gesendet! Bitte jetzt per Wise bezahlen.");
+          document.getElementById("orderForm").reset();
+          preview.textContent = "📤 Du erhältst: 0 USDT";
+        } else {
+          alert("❌ Fehler beim Senden an Telegram.");
+        }
+      })
+      .catch(err => {
+        alert("❌ Netzwerkfehler. Bitte später erneut versuchen.");
+      });
+    });
+  </script>
+</body>
+</html>
